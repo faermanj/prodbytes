@@ -1,0 +1,20 @@
+version: "0.5"
+
+# Local preview of the statically generated site.
+#   process-compose up        # then open http://localhost:8080/
+#
+# The built site (docs/) uses relative asset URLs, so serving it at the server
+# root works regardless of the production BASE_PATH. Run `make build` first.
+
+processes:
+  serve:
+    command: python3 -m http.server 8080 --directory docs
+    availability:
+      restart: on_failure
+    readiness_probe:
+      http_get:
+        host: 127.0.0.1
+        port: 8080
+        path: /
+      initial_delay_seconds: 1
+      period_seconds: 5
