@@ -1,4 +1,4 @@
-# Enterprise Decision Management: The Humans in the Loop
+# Enterprise Applications and Decisions: The Humans in the Loop
 
 Agents are everywhere these days, including in the enterprise, but it's not only for the better. From security vulnerabilities to production outages, we see AI playing a significant role both in preventing AND causing those issues. The claims of success and the hype on social media greatly exaggerate what can be expected in an enterprise context, where technology needs to be secure, reliable, and accountable. In this article, let's discuss how corporate AI adoption can be balanced between the skepticism and the hype.
 
