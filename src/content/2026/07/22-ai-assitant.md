@@ -33,7 +33,7 @@ That accept-or-revert step matters. The AI never silently rewrites your business
 
 Another thing worth showing is testing. On the Run tab I can fill in the form or see it as a table — and instead of typing all those values by hand, I ask the assistant to do it on my behalf: generate a positive application with excellent applicant data. It fills in a case with an excellent credit score and offers to run it right away, and the result comes back sufficient. In the same way I ask for a negative case, and for another one with insufficient data, each generated with different details, and add them to my test set.
 
-Then comes the part I covered in the [previous post on testing decision models](/posts/testing-decision-models/): pinning expected values. If I want to make sure this loan prequalification is *not qualified*, I pin that as the expected outcome — and if it ever changes for some reason, the test fails. That is how you prevent your model from being improperly published: the checks live outside the AI, so no amount of confident generation gets past them.
+Then comes the part I covered in the [previous post on testing decision models](../testing-decision-models/): pinning expected values. If I want to make sure this loan prequalification is *not qualified*, I pin that as the expected outcome — and if it ever changes for some reason, the test fails. That is how you prevent your model from being improperly published: the checks live outside the AI, so no amount of confident generation gets past them.
 
 ## Changes to the model, not interpretations
 

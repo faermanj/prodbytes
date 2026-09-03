@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.pykbZv0y.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DdR5_5PU.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bqaqzf9O.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.Bg-SoEpT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BYWWGNxg.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.DXh-yW3u.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/6cz8jP0g.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="Using the Aletyx AI Assistant to explain, change, and test decision models — getting AI productivity without giving up decisions that are traceable, auditable, and safe to trust."/><!----><title>Accountable AI: Editing Decision Models with the Aletyx AI Assistant — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Accountable AI: Editing Decision Models with the Aletyx AI Assistant</h1> <time datetime="2026-07-22">2026-07-22</time> <!--[--><p>In this video, I want to dive deeper into the accountable AI subject: creating solutions that use AI so we are more productive and helped by AI agents, without losing accountability — making decisions that are traceable, auditable, and that you can safely trust.</p> <p>The tool for today is the <a href="https://aletyx.ai/ai-assistant" rel="nofollow">Aletyx AI Assistant</a>. You can learn more about it on that page and sign in for a free trial, so if you want to give this a try, you can without any cost. There is also a <a href="https://aletyx.ai/docs/ai-assistant/overview" rel="nofollow">dedicated section in the docs</a>, which is what we are going to follow here.</p> <h2>Starting in the Playground</h2> <p>If you already have your own instance of <a href="https://aletyx.ai/decision-control" rel="nofollow">Aletyx Decision Control</a> set up, you can use that. For today, though, I want to demonstrate everything on the <a href="https://playground.aletyx.ai/" rel="nofollow">Aletyx Playground</a>, so it is easier and everybody can follow along.</p> <p>I create a new decision process from a sample: loan prequalification, deciding whether a given applicant is acceptable for a loan. On the right side of the editor sits the AI assistant — you can see what it is doing and ask anything you want.</p> <h2>Explain the model</h2> <p>The first thing I ask is simply to <em>explain this model</em>. If you’re not familiar with the boxes, the types of arrows, and what they all mean, this is a good place to get started. The assistant tells you what the process is and how it works — including what the front end ratio means (housing costs as a share of income) and the back end ratio (total obligations as a percentage of income), and how those drive the loan decision in this example.</p> <h2>Change a rule in plain language</h2> <p>Explaining is nice, but I can also change the model. The <a href="https://aletyx.ai/docs/ai-assistant/prompts" rel="nofollow">docs have a page of prompts</a> you can try on the sample, and I take one that changes a business rule: the lender acceptable DTI, the percentage of the applicant’s gross monthly income relative to all monthly debt obligations, currently set at 36%.</p> <p>The point of the exercise is that I describe the change in layman’s terms — “change to 42% the percentage of the applicant’s gross monthly income relative to all monthly debt obligations that qualifies the applicant for a loan” — deliberately not using the model’s own jargon, to see whether the AI truly understands it. It does: the <em>Lender Acceptable DTI</em> node is highlighted, I can see it was changed from 36% to 42%, and I accept the change.</p> <p>Same thing with the credit scoring table, where a score over 750 is excellent, then good, fair, poor, and so on. I ask it to reduce each category by 10% so it is easier to get a loan, and every layer of the credit score decision comes back reduced as asked. I can accept all changes — or, if I don’t like the result, revert and try again.</p> <p>That accept-or-revert step matters. The AI never silently rewrites your business logic; it proposes a reviewable edit, and a human signs off.</p> <h2>Generate and pin tests</h2> <p>Another thing worth showing is testing. On the Run tab I can fill in the form or see it as a table — and instead of typing all those values by hand, I ask the assistant to do it on my behalf: generate a positive application with excellent applicant data. It fills in a case with an excellent credit score and offers to run it right away, and the result comes back sufficient. In the same way I ask for a negative case, and for another one with insufficient data, each generated with different details, and add them to my test set.</p> <p>Then comes the part I covered in the <a href="../testing-decision-models/">previous post on testing decision models</a>: pinning expected values. If I want to make sure this loan prequalification is <em>not qualified</em>, I pin that as the expected outcome — and if it ever changes for some reason, the test fails. That is how you prevent your model from being improperly published: the checks live outside the AI, so no amount of confident generation gets past them.</p> <h2>Changes to the model, not interpretations</h2> <p>You can also upload images and text — your policy documents, your data — and ask the assistant to create a decision model for you. And this is the part I care most about: what you get out of it is not an interpretation every time someone asks, but a change to the model. You can see the versions, run the tests, and make the decision available to your application in a way that is accountable — not subject to hallucinations, variations, or different interpretations on each call, just reviewed changes to your decision model.</p> <p>That, to me, is what accountable AI looks like in practice: the AI does the busywork, the model stays the single source of truth, and the tests have the final word.</p> <p>How are you keeping AI-assisted changes to your business logic accountable — reviewable edits and pinned tests, or trusting the output? Let me know in the comments!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1q9ux4t = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.pykbZv0y.js"),
+						import("../../_app/immutable/entry/app.Bg-SoEpT.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

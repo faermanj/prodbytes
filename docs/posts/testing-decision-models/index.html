@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.pykbZv0y.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DdR5_5PU.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bqaqzf9O.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.Bg-SoEpT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BYWWGNxg.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.DXh-yW3u.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/6cz8jP0g.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="How to test decision models — scenarios and expected values in the authoring tool, threshold assertions that survive change, and JUnit sweeps over real data."/><!----><title>Testing Decision Models: Checks the AI Cannot Vibe Away — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Testing Decision Models: Checks the AI Cannot Vibe Away</h1> <time datetime="2026-07-16">2026-07-16</time> <!--[--><p>In this video, let’s continue our journey into enterprise software development and decision making in those applications. If you’re familiar with rules engines like <a href="https://aletyx.ai/docs/drools/overview" rel="nofollow">Drools</a> or <a href="https://aletyx.ai/docs/components/overview" rel="nofollow">Apache KIE</a>, that’s exactly the kind of thing we’re talking about here — and if not, don’t worry, I’ll show everything step by step. Today the subject is testing: how to make sure your application works as expected when the business logic lives in a decision model. This is especially important now with AI, because most of us don’t really know what’s going on inside the AI’s little brain — so having an external check on the outcome is more valuable than ever.</p> <h2>The vehicle insurance broker app</h2> <p>The app I’m building to demonstrate these concepts is a vehicle insurance broker, and all the source code is in the <a href="https://github.com/prodbytes/insurance-hub" rel="nofollow">insurance-hub</a> repository on GitHub. I’m trying to use the same kind of software you’d probably find in an enterprise scenario: a <a href="https://dev.java/" rel="nofollow">Java</a> app with <a href="https://vaadin.com/" rel="nofollow">Vaadin</a> as the web framework — though of course you can use any framework you like.</p> <p>In the demo I fill a quote with random values and get a 2024 Ford Explorer, with accidents and traffic tickets in the driver’s past. The quote comes back at $2,112 a year, calculated from a vehicle value estimated at $33,000 and a rate estimated at 6.4%.</p> <p>So how was that calculated? Not by my code. The pricing is managed by an external decision management service — in my case <a href="https://aletyx.ai/decision-control" rel="nofollow">Aletyx Decision Control</a>, which I recommend taking a look at. Under the hood it’s Drools and the other <a href="https://aletyx.ai/docs/components/overview" rel="nofollow">Apache KIE</a> projects we know and love from the open-source world, with the enterprise features that matter on top: security, observability, tracking, and so on.</p> <h2>Models are just code</h2> <p>To show how the model gets there, I delete my quote model and import it again — just select the folder with the model files, straight from the app’s source code, and upload it. You can also download models from Decision Control back into your repository, or more simply ask AI to do it. Because a decision model, under the hood, is just code in a text format, your preferred assistant — <a href="https://claude.com/claude-code" rel="nofollow">Claude</a>, <a href="https://github.com/features/copilot" rel="nofollow">Copilot</a>, whichever — can read and write it like any other language. Aletyx also offers an AI assistant integrated directly into Decision Control, so you can ask whatever you want out of your model right there.</p> <p>The quote is built from two decisions. The first is the estimated value of the car, mapped as a simple decision table: given the make, model, and year, decide what it’s worth. Our 2024 Ford Explorer lands at $33,000.</p> <h2>Scenarios and expected values</h2> <p>Now, the testing. In the authoring tool I can run the model directly: say I have a Ford Explorer 2024 and, not surprisingly, it computes the estimated value. I can view the scenario as a form or as a table, and the table view is where it gets useful — I can add as many input cases as I want.</p> <p>The interesting part is <em>pinning expected values</em>. If I pin the estimated value at 33, the tool will ensure the model keeps producing 33 for that input. To demonstrate, I change the expectation to 32: the scenario immediately shows red, and if I try to publish anyway, the tool refuses — the test failed, you shouldn’t publish. Fix the expectation back to 33, everything passes, and the model can be published and used in other decisions.</p> <p>That’s the decision-model equivalent of a failing build blocking a merge: the model cannot reach production while its scenarios disagree with it.</p> <h2>Assertions that survive change</h2> <p>The second model calculates the insurance premium. It takes the car’s estimated value, the driver’s age, tickets, mileage, and accidents; assigns each a risk factor; and combines them into a risk rate — this time with a formula instead of a table. You can mix and match expressions, tables, and other forms of calculation in the same model.</p> <p>Running a scenario for that $33,000 car with 500,000 kilometers, a driving history of fourteen years, plus accidents and tickets, the premium comes out higher, with a risk rate of 0.082.</p> <p>Here’s the thing, though: pinning <em>exactly</em> 0.082 would be a brittle test. As the rules evolve — maybe I give a little more weight to age, or to accidents — that number is going to float, and that’s fine. What I actually care about is that it never crosses a viability threshold: if the yearly premium is 20% of the car’s value, nobody is going to accept the policy. So instead of an exact expectation, I set the expected result as a constraint — the risk rate must stay at or below 15% — and save it. Every run now validates the rule and shows the expected condition next to the actual value from the evaluation.</p> <p>Exact pins for decisions that must not change; range and threshold assertions for values that are allowed to float. Both have their place.</p> <h2>Unit tests is also an option</h2> <p>Scenario testing in the authoring tool is great, but some kinds of tests are awkward to express there — and that’s normal. We need different testing tools for different needs, the same way we have end-to-end tests, UI tests, and performance tests. The more correctness we can ensure, the better.</p> <p>So alongside the app code I also have unit tests with <a href="https://junit.org/" rel="nofollow">JUnit</a>. Some just stimulate the model with fixed inputs, but the interesting ones query the database and assert whatever I like across the data. One test picks every maker in a range of years, every model by those makers, calculates the premium for each one automatically, and verifies that none of them surpasses the viability threshold — 15% by default. I can run it straight from the testing perspective in the IDE, and if any decision weight is wrong — if for any reason a single vehicle ends up with an unviable premium — we’ll know before anyone gets that quote.</p> <p>Right now, all tests are passing. Life is good.</p> <p>How do you test the business logic in your applications — scenarios next to the model, code-level sweeps over real data, or hoping the AI got it right? Let me know in the comments!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1q9ux4t = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.pykbZv0y.js"),
+						import("../../_app/immutable/entry/app.Bg-SoEpT.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

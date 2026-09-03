@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.pykbZv0y.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DdR5_5PU.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bqaqzf9O.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.Bg-SoEpT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BYWWGNxg.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.DXh-yW3u.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/6cz8jP0g.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="How to audit decisions in a legacy app you can't touch — bind a decision model to database events with Debezium and Kafka, and let the model flag what's out of bounds."/><!----><title>Auditing Enterprise Decisions: Apply Rules to Data Without Changing the App — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Auditing Enterprise Decisions: Apply Rules to Data Without Changing the App</h1> <time datetime="2026-07-31">2026-07-31</time> <!--[--><p>In this video I want to show you a fun demo I built for auditing enterprise applications. I know “fun” and “audit” usually don’t belong in the same phrase when we talk about enterprise apps — and that’s usually because legacy is hard to change. When we need some auditing, some new rules regarding our data, it can be tricky to figure out how those apps behave and add listeners in the proper place to give the answer the company wants. And needs: especially now with AI, we may have regulated audit criteria in many industries, and we need to justify decisions. So decision management is the name of the game here.</p> <h2>The rule we want to audit</h2> <p>Let’s start with the same app we’ve been using, the vehicle insurance hub — the source is in the <a href="https://github.com/prodbytes/insurance-hub" rel="nofollow">insurance-hub</a> repository. It’s a simple insurance quoting system: I fill a quote with random data and get back a risk rate and the premium, calculated from the estimated value of the car — in this case a 2024 Honda Accord — and a risk rate of 10.72%.</p> <p>What I want to do is create a rule and audit that decision. My rule is simple, but it could be as complicated as you want: the risk rate can’t be too high or too low. If it’s above, say, 15% of the value of the car, the policy isn’t viable for the customer; if it’s below 5%, it may not be viable for the insurance company. That’s the criterion I want to set and audit in my data.</p> <p>And here’s the important constraint: I want to do this <strong>without changing the app</strong>. Let’s consider it a legacy app that I can’t really touch.</p> <h2>A model that listens</h2> <p>In <a href="https://aletyx.ai/decision-control" rel="nofollow">Aletyx Decision Control</a> I created a new model for this. One cool thing is that I can work on it in Decision Control or right in my IDE — support for <a href="https://marketplace.visualstudio.com/items?itemName=Aletyx.automation-design" rel="nofollow">VS Code</a> and <a href="https://plugins.jetbrains.com/plugin/33190-aletyx-automation-design" rel="nofollow">IntelliJ</a> was just announced, with other IDEs coming.</p> <p>There’s the original quote model, which takes tickets, accidents, age, and mileage, assigns risk, and multiplies by the car’s estimated value to produce the premium — we saw how that works in previous videos. The new part is the auditing side: a very simple <em>audit result</em> decision. If the risk rate is below 5% or above 12%, it’s an <strong>error</strong> — too low or too high. Between 5 and 10 is <strong>OK</strong>. Between 10 and 12 it’s a <strong>warning</strong>: perhaps a human should review it, or at least get that information somehow.</p> <p>The little piece of magic is a text annotation on the model. That annotation is how I bind the event to the model: I wrote a small app that takes my models, looks up the ones annotated with that binding, and uses it to listen for events matching that data. When a message shows up on <a href="https://kafka.apache.org/" rel="nofollow">Kafka</a> that matches the binding, it invokes the model and gets the result. That’s my little hack.</p> <h2>From the database to the model</h2> <p>How do the events get to Kafka in the first place? I used <a href="https://debezium.io/" rel="nofollow">Debezium</a> to capture the data — a very simple integration with most databases. It reads the replication data from the database and throws it into Kafka; the messages match the model annotation and trigger the model for an audit. That’s why the insurance hub needed no changes at all: no audit signal, no code change, nothing — it’s all integrated through the database.</p> <p>In the separate audit app I built, the quote we just made at 10.72% is correctly flagged as a warning. I can see all the messages in the Kafka queue for all the events, and my specific audit event next to them. Get another quote with reasonable values and it shows up as OK. Get one more with everything bad — accidents, tickets, high mileage, old car, the worst case — and the rate goes above the threshold, and the audit app shows an error.</p> <h2>Managed, tracked, tested, versioned</h2> <p>It’s a very simple audit rule, but the cool thing about decision management is that the plumbing just triggers the model. If your viability rules are more complex, if you have more elements in that model, you can ask AI to generate a model with all the rules you want and it will build them for you — and the audit gets the same advantages of decision models that we saw before. The rules are managed, tracked, tested, and versioned: in Decision Control I can see every version of every model, what was published, when, and by who — and change them and have the new version applied live.</p> <p>So that’s enterprise auditing without changing your legacy. How do you handle new audit requirements on systems you can’t modify — database triggers, log scraping, or something like this? Let me know in the comments — see you in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1q9ux4t = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.pykbZv0y.js"),
+						import("../../_app/immutable/entry/app.Bg-SoEpT.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

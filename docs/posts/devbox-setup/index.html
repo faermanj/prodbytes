@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.pykbZv0y.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DdR5_5PU.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bqaqzf9O.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.Bg-SoEpT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BYWWGNxg.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.DXh-yW3u.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/6cz8jP0g.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="How to set up a modern development environment that anyone on your team can start in seconds — with Dev Containers and Devbox."/><!----><title>Your New Project Canvas: Dev Containers and Devbox — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Your New Project Canvas: Dev Containers and Devbox</h1> <time datetime="2026-07-10">2026-07-10</time> <!--[--><p>In this video I’d like to address a question I got from a student at <a href="https://linuxtips.io/" rel="nofollow">LINUXtips</a> just the other day — and a very frequent one with customers too: how do you set up a new project? How do we build a modern development environment? Of course that depends on the project — different libraries, frameworks, and dependencies will need a different setup. But there are tools that let you share the project with your team in a way that everybody can contribute without going through a detailed recipe. That’s what I’d like to demonstrate today, using <a href="https://containers.dev/" rel="nofollow">Dev Containers</a> and <a href="https://www.jetify.com/devbox" rel="nofollow">Devbox</a>.</p> <h2>Starting from a template</h2> <p>Everything I’m going to show works from scratch in a new repository, but I prepared something for you: the <a href="https://github.com/prodbytes/blank-devbox" rel="nofollow">blank-devbox</a> template repository in our <a href="https://github.com/prodbytes" rel="nofollow">ProdBytes org</a>, with all the setup already done (and if you want to leave a star, I’d appreciate it). Template repos are very simple to use: click “Use this template”, create your new repository — in the video I create <a href="https://github.com/prodbytes/pizza-hub" rel="nofollow">pizza-hub</a>, to get the best pizza around you — and in a few seconds you have a copy of everything.</p> <p>From there you can click Code → Codespaces and start a <a href="https://github.com/features/codespaces" rel="nofollow">GitHub Codespace</a>. It’s a good idea to go with “New with options” — the defaults work, but you get a bit more control; I picked a four-core machine. This gets you started quickly without cloning the repo or setting up your machine at all: it runs on GitHub’s cloud, and there is a <a href="https://docs.github.com/en/billing/concepts/product-billing/github-codespaces" rel="nofollow">monthly free tier</a>. After that, you can clone the repo locally or pay for more Codespaces, whatever you need.</p> <h2>Using DevContainers</h2> <p>While the Codespace builds, you can see what it’s doing — and all of it is defined in <code>.devcontainer/devcontainer.json</code>. The definition is short: the configuration lives in a Containerfile with the code as build context, the remote user is <code>vscode</code>, and I add the <a href="https://github.com/devcontainers/features" rel="nofollow">docker-in-docker feature</a> so <a href="https://www.docker.com/" rel="nofollow">Docker</a> comes already set up and ready to use inside the container. There are also a few <a href="https://code.visualstudio.com/" rel="nofollow">VS Code</a> settings — you can add extensions and whatever else you’d like there — and a <code>postCreateCommand</code> that installs the Devbox dependencies.</p> <p>That last part matters: Devbox is a separate tool, and <code>devbox.json</code> — not the container — is where the actual dependencies live. We could install everything in the container image, but keeping the tools in Devbox makes it much easier to clone the repo and use your own machine if you want. It’s a matter of freedom: develop in a dev container if that’s fine for you, or on your local machine just as well — the same definition works for both.</p> <h2>Devbox: same dependencies everywhere</h2> <p>Once the Codespace finishes, the README opens with your project files. Start a new terminal and type <code>devbox shell</code>, and you get a shell with all the dependencies defined in <code>devbox.json</code> — for this template, <a href="https://dev.java/" rel="nofollow">Java</a> on the <a href="https://www.graalvm.org/" rel="nofollow">GraalVM</a> virtual machine, <a href="https://www.python.org/" rel="nofollow">Python</a>, <a href="https://nodejs.org/" rel="nofollow">Node.js</a>, and <a href="https://www.postgresql.org/" rel="nofollow">PostgreSQL</a>. The prompt prefix shows the Devbox shell is active, and <code>java -version</code> or <code>node --version</code> confirm you’re running exactly the versions the project specified — the same for everybody, whether it’s macOS or Linux, a dev container or your local machine.</p> <h2>One command to run everything</h2> <p>Devbox brings another capability: running processes, integrated through <a href="https://github.com/F1bonacc1/process-compose" rel="nofollow">process-compose</a>. In <code>process-compose.yaml</code> I have a PostgreSQL database and a health check configured, so running:</p> <pre class="language-bash"><!----><code class="language-bash">devbox services up</code><!----></pre> <p>brings up every process defined in the file. That’s a great way to build a uniform interface: on any project, I just type <code>devbox services up</code> and I don’t need to care how to start it — everything comes up as defined for that project. You get a terminal UI where you can navigate to the postgres line, see the database up and the health check running, with logs separated per process. Readiness checks are fully configurable — the command, the intervals, the thresholds — so you can define exactly what “up” means for each service.</p> <h2>Local, remote, or no containers at all</h2> <p>The same works outside the browser. From the repo’s Code menu you can open the Codespace in local VS Code — that’s a remote connection from your editor to the dev container, fully supported. And if you don’t want to use containers, or can’t for any reason, running locally is just as simple: clone the repo, <code>devbox shell</code> downloads all the dependencies, and <code>devbox services up</code> gives you the same health check, the same PostgreSQL, everything defined just the same.</p> <p>A few more details you’ll find in the template. In my process-compose file I prefer starting services with <a href="https://docs.docker.com/compose/" rel="nofollow">Docker Compose</a> — so if you want, you can drop Devbox entirely and run <code>docker compose</code> directly against the same <a href="https://github.com/prodbytes/blank-devbox/blob/main/compose.yaml" rel="nofollow">compose.yaml</a>. And there’s an <a href="https://agents.md/" rel="nofollow">AGENTS.md</a> with a few directives for agents: if you’re using <a href="https://claude.com/claude-code" rel="nofollow">Claude</a> or any other agent, it will follow basic notes like reviewing changes before pushing and checking for security issues such as leaking secrets.</p> <p>With tools like Docker, Devbox, and Dev Containers, we get a modern development environment that anyone on the team can start easily — even a brand-new contributor is just a few seconds away from a working setup.</p> <p>How does your team onboard a new developer today — a README recipe, a golden laptop image, or one command? Let me know in the comments!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1q9ux4t = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.pykbZv0y.js"),
+						import("../../_app/immutable/entry/app.Bg-SoEpT.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

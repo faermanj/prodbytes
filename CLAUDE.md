@@ -59,7 +59,22 @@ inventing a new style.
   difference.
 - Practical over theoretical. No buzzwords, no vendor talking points. Concrete
   examples, honest about what breaks.
+- **Avoid em-dash "impact phrases".** Prefer plain sentences using commas and
+  articles over punchy em-dash asides. An occasional em dash is fine; a post
+  full of them reads as AI-styled copy.
 - Link out to authoritative sources the way existing posts do.
+- **Never use relative links to this repository's own posts or pages.** Posts
+  are syndicated (e.g. Substack), where relative links break. When referencing
+  a previous post, link its published URL (e.g.
+  `https://prodbytes.substack.com/p/<slug>`) — verify the slug exists.
+- **References to previous posts must point directly to the published post on
+  `prodbytes.substack.com`**, never to GitHub (neither the repo nor the GitHub
+  Pages site). Beware: the Substack slug can differ from the post's `slug`
+  frontmatter in this repo. Look up the real URL in the Substack archive, e.g.
+  `curl -s 'https://prodbytes.substack.com/api/v1/archive?sort=new&limit=20'`.
+- **Verify every link before finishing a post.** Check that each URL actually
+  resolves (e.g. `curl -s -o /dev/null -w '%{http_code}' -L <url>` returns 200);
+  fix or replace anything that 404s or redirects somewhere unexpected.
 - **Link every mentioned product, service, library, framework, or language** to
   its official site on first mention.
 - **Link every mentioned GitHub project** to its repository (or the specific
@@ -75,3 +90,26 @@ When writing promotional copy (LinkedIn, etc.) for posts or videos:
 - **No hashtags.**
 - Strip tracking parameters from shared links unless asked to keep them.
 - End with the same discussion-inviting question style the posts use.
+
+## Thumbnains 
+
+Prompts
+
+```
+Create a thumbnail for a post.
+
+IMAGE STYLE:
+When characters are requestes, use a mix of futuristic and funny robots, cats, and humans, in that order of preference.
+In the style of "love death robots: season 01 episode 02".
+3D cinematic render, photorealistic CGI, stylized robot characters, post-apocalyptic ambient lighting, surface imperfections, realistic metal and matte plastic textures, Unreal Engine 5 render
+Positive mood. Apocaliptic future background, but not too dark.
+No text in the image except the title.
+The title must be readable.
+The title must be discreetly and smoothly embbeded in the image. 
+
+IMAGE TITLE:
+"Connecting to Isolated Databases with AWS Cloud Shell"
+
+IMAGE CONTENT:
+A little peral inside an oyster shell working on its database while dangerous fish prey outside
+```

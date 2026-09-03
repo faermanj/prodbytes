@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.pykbZv0y.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DdR5_5PU.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bqaqzf9O.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.Bg-SoEpT.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BYWWGNxg.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.DXh-yW3u.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/6cz8jP0g.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="Before creating anything on AWS, set up budget alerts — how much to set, which thresholds actually help, and how SNS lets you automate actions later."/><!----><title>Delivering Projects on AWS: Budget Alerts — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Delivering Projects on AWS: Budget Alerts</h1> <time datetime="2026-07-27">2026-07-27</time> <!--[--><p>Before we start publishing resources on <a href="https://aws.amazon.com/" rel="nofollow">AWS</a>, let’s take a moment to create some security measures so we can operate confidently and safely. The first one is a budget.</p> <p>If you type “budget” in the console search bar, you should see it as a <a href="https://aws.amazon.com/aws-cost-management/aws-budgets/" rel="nofollow">Billing and Cost Management</a> feature. This is how we get notified — and can even take automated action if we want — around what we’re spending.</p> <h2>Creating your first budget</h2> <p>The simplified template is fine to start with. We’re going to create a <strong>monthly cost budget</strong>, because that’s the most useful one: a fixed amount that we expect to be our maximum per month. You can create other budgets later, but this is a good first one.</p> <p>How much? That depends on your context. If you’re running something like a personal website, $5 to $10 is plenty. A startup, an initial web app, or a small development project may be more like $20 to $50 — and that can grow as your application (and hopefully your income) grows. Also remember that if you created a free account, you’ll initially be consuming the <a href="https://aws.amazon.com/free/" rel="nofollow">$200 in free tier credits</a> — and setting a budget alarm is one of the challenges that earns you $20 of them, as we saw in the last episode.</p> <h2>Thresholds that actually help</h2> <p>I called mine “max monthly cost”, set it to $50, and pointed it at my email. All AWS services are in scope. The alerts:</p> <ul><li>When the <strong>actual</strong> spend reaches 85%</li> <li>When the <strong>actual</strong> spend reaches 100%</li> <li>When the <strong>forecast</strong> spend reaches 100%</li></ul> <p>That’s it. Now I know that if I forget something running, if there’s malicious activity, or for any reason at all my spend gets even near this budget, I’m going to be notified.</p> <p>And why not create another one? I added a second budget as a warning at $30 — an earlier heads-up to remind myself before things get anywhere near the maximum.</p> <h2>SNS and automated actions</h2> <p>One interesting detail: these alerts are built on <a href="https://aws.amazon.com/sns/" rel="nofollow">Amazon SNS</a>, the messaging service. That means you can edit an alert and configure SMS or chatbot notifications, define them however you want — and even take automated action, because SNS is just a messaging service you can subscribe to those topics.</p> <p>That’s perhaps a bit too advanced for now, though. Just being notified by email is fine.</p> <p>And that’s how we do it. Have you set a budget on your account — and what did you set it to? Let me know in the comments — see you in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1q9ux4t = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.pykbZv0y.js"),
+						import("../../_app/immutable/entry/app.Bg-SoEpT.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>
