@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.L8cWOk_4.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C5K9m7Jv.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BSsRGyPu.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.F9_ixWsA.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BMdGwnwI.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.4d2MrBCp.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DhsN428B.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="Improving our automation with Infrastructure as Code — declaring the static website as a CloudFormation template that either creates everything or nothing at all."/><!----><title>Automation with AWS CloudFormation — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Automation with AWS CloudFormation</h1> <time datetime="2026-08-07">2026-08-07</time> <!--[--><p>Let’s improve our automation a little using tools from Infrastructure as Code, starting with the one from AWS, <a href="https://aws.amazon.com/cloudformation/" rel="nofollow">AWS CloudFormation</a>. CloudFormation lets us declare what we want instead of going command by command. You say “I need this bucket, this instance, this policy”, and the service will either create everything you specified or nothing at all. No more error scenarios where your script ran through half of the steps, hit an exception, and left you to deal with the leftovers and find out what happened. In this one, we’ll deploy the same static website <a href="../automation-with-aws-cli/">from the CLI episode</a>, but with a template instead of a script full of commands.</p> <blockquote><p>This post is part of the <a href="https://prodbytes.substack.com/p/delivering-projects-on-aws?r=c4tlc" rel="nofollow">“Delivering Software Projects”</a> series, focused on helping YOU be sucessful in your tech career. Please consider becoming a member. For a small contribution, you’ll help us keep the lights on and have full access to our content, events and tools.</p></blockquote> <h2>Declaring the resources</h2> <p>The example lives in the <a href="https://github.com/prodbytes/DSP" rel="nofollow">DSP repository</a>, under <a href="https://github.com/prodbytes/DSP/tree/main/samples/static-website-simple/cform" rel="nofollow">samples/static-website-simple/cform</a>. The template is a <a href="https://yaml.org/" rel="nofollow">YAML</a> file (JSON works too) with a few sections, the most important one being <code>Resources</code>, plus a <code>Description</code> and <code>Outputs</code>. There are <code>Parameters</code> and other things we’ll use in the future, but for now, a simple template will do:</p> <pre class="language-yaml"><!----><code class="language-yaml"><span class="token key atrule">Resources</span><span class="token punctuation">:</span>
+  <span class="token key atrule">WebsiteBucket</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>S3<span class="token punctuation">:</span><span class="token punctuation">:</span>Bucket
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">WebsiteConfiguration</span><span class="token punctuation">:</span>
+        <span class="token key atrule">IndexDocument</span><span class="token punctuation">:</span> index.html
+        <span class="token key atrule">ErrorDocument</span><span class="token punctuation">:</span> index.html
+      <span class="token key atrule">PublicAccessBlockConfiguration</span><span class="token punctuation">:</span>
+        <span class="token key atrule">BlockPublicAcls</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+        <span class="token key atrule">IgnorePublicAcls</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+        <span class="token key atrule">BlockPublicPolicy</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+        <span class="token key atrule">RestrictPublicBuckets</span><span class="token punctuation">:</span> <span class="token boolean important">false</span></code><!----></pre> <p>Inside <code>Resources</code>, the first thing is the name we give each resource, and right below it comes the type, <code>AWS::S3::Bucket</code>, with the double colons between the parts. If you search for that resource type, you land on <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-s3-bucket.html" rel="nofollow">its documentation page</a>, with all the properties you can configure. Everything you can do in the console is usually available in CloudFormation too. Here it’s the bucket with the website configuration serving <code>index.html</code> as the homepage, and public access allowed.</p> <p>Then the website policy, the same policy from the last episode allowing read access to the objects:</p> <pre class="language-yaml"><!----><code class="language-yaml">  <span class="token key atrule">WebsiteBucketPolicy</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>S3<span class="token punctuation">:</span><span class="token punctuation">:</span>BucketPolicy
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Bucket</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> WebsiteBucket
+      <span class="token key atrule">PolicyDocument</span><span class="token punctuation">:</span>
+        <span class="token key atrule">Version</span><span class="token punctuation">:</span> <span class="token string">"2012-10-17"</span>
+        <span class="token key atrule">Statement</span><span class="token punctuation">:</span>
+          <span class="token punctuation">-</span> <span class="token key atrule">Sid</span><span class="token punctuation">:</span> PublicReadGetObject
+            <span class="token key atrule">Effect</span><span class="token punctuation">:</span> Allow
+            <span class="token key atrule">Principal</span><span class="token punctuation">:</span> <span class="token string">"*"</span>
+            <span class="token key atrule">Action</span><span class="token punctuation">:</span> s3<span class="token punctuation">:</span>GetObject
+            <span class="token key atrule">Resource</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> <span class="token string">"$&#123;WebsiteBucket.Arn&#125;/*"</span></code><!----></pre> <p>A few things going on here. The bucket policy takes a bucket, and I need to reference the one created previously. If I just wrote <code>WebsiteBucket</code> as a plain string, CloudFormation would look for a bucket literally called “WebsiteBucket”, and I don’t want that. I want the name of the bucket that was actually created, so I use <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-ref.html" rel="nofollow"><code>!Ref</code></a>, a reference to that element. What <code>Ref</code> returns is specified on the resource type page, under return values: for an S3 bucket, passing the logical ID to <code>Ref</code> returns the bucket name. It’s always useful to check what <code>Ref</code> returns for each type.</p> <p>There are other functions too. In the policy resource, <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-sub.html" rel="nofollow"><code>!Sub</code></a> substitutes a property into a string, in this case the bucket’s ARN, the <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html" rel="nofollow">Amazon Resource Name</a>, followed by <code>/*</code> for all the objects in it. The <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html" rel="nofollow"><code>!GetAtt</code></a> documentation shows which attributes each resource exposes: for the bucket, the ARN, the domain name, and others. With these functions I can write exactly what I want, making dynamic references to elements created earlier and composing strings with the correct syntax.</p> <p>Finally, the <code>Outputs</code> section declares named outputs. I’ll print the bucket name and the website URL:</p> <pre class="language-yaml"><!----><code class="language-yaml"><span class="token key atrule">Outputs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">BucketName</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> WebsiteBucket
+  <span class="token key atrule">WebsiteURL</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!GetAtt</span> WebsiteBucket.WebsiteURL</code><!----></pre> <h2>Deploying the stack</h2> <p>The deploy script gets a lot shorter. It calls <code>aws cloudformation deploy</code>, passing the template file, and that either creates the stack or updates it:</p> <pre class="language-bash"><!----><code class="language-bash">aws cloudformation deploy <span class="token punctuation"></span>
+  --stack-name <span class="token string">"<span class="token variable">$&#123;STACK_NAME&#125;</span>"</span> <span class="token punctuation"></span>
+  --template-file static-website-simple.cform.yaml</code><!----></pre> <p>The update part is quite useful. If you keep the infrastructure with your code, you can evolve the infrastructure along with the code, not as a separate thing. Add a resource to the template, run deploy again, and the stack is updated.</p> <p>However, CloudFormation is for the provisioning of the resources. It’s going to create the bucket, but it’s not going to put any content in it. So I still have a separate after-deploy script that fetches the bucket name from the created stack and syncs the files:</p> <pre class="language-bash"><!----><code class="language-bash"><span class="token assign-left variable">BUCKET_NAME</span><span class="token operator">=</span><span class="token string">"<span class="token variable"><span class="token variable">$(</span>aws cloudformation describe-stacks <span class="token punctuation"></span>
+  --stack-name <span class="token string">"<span class="token variable">$&#123;STACK_NAME&#125;</span>"</span> <span class="token punctuation"></span>
+  <span class="token parameter variable">--query</span> <span class="token string">"Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue"</span> <span class="token punctuation"></span>
+  <span class="token parameter variable">--output</span> text<span class="token variable">)</span></span>"</span>
+
+aws s3 <span class="token function">sync</span> <span class="token string">"<span class="token variable">$&#123;SITE_DIR&#125;</span>"</span> <span class="token string">"s3://<span class="token variable">$&#123;BUCKET_NAME&#125;</span>"</span> <span class="token parameter variable">--delete</span></code><!----></pre> <p>Remember the <code>--query</code> parameter from the last episode? Without it, <code>describe-stacks</code> returns a huge JSON. Here I take the first stack, find the output whose key is <code>BucketName</code>, and get its value. That’s how I get the bucket name that was generated automatically, because since I didn’t specify one, CloudFormation generated it for me. Same thing for the website URL, which the script fetches and prints once it’s done.</p> <p>Run the deploy script and either everything on the template gets created or nothing does, so there are no weird half-done situations to manage. Out of curiosity, you can watch it happen on the <a href="https://console.aws.amazon.com/cloudformation/" rel="nofollow">CloudFormation console</a>: the stack goes from create in progress to create complete, the resources tab links straight to the bucket on the S3 console, the files are correctly uploaded, and the outputs tab shows the bucket name and the website URL. Click it and there’s our very simple app, behaving just as we expected.</p> <h2>Destroying the stack</h2> <p>We could just go to the CloudFormation console and hit delete stack. However, that will give an error, because a bucket must be empty to be deleted. A few resource types are like that: the ones that contain data, where you probably want to clean the data first before destruction. So the destroy script does exactly that, deletes the objects in the bucket, and then deletes the stack, which deletes all the resources:</p> <pre class="language-bash"><!----><code class="language-bash">aws s3 <span class="token function">rm</span> <span class="token string">"s3://<span class="token variable">$&#123;BUCKET_NAME&#125;</span>"</span> <span class="token parameter variable">--recursive</span>
+aws cloudformation delete-stack --stack-name <span class="token string">"<span class="token variable">$&#123;STACK_NAME&#125;</span>"</span></code><!----></pre> <h2>Scripts don’t go away</h2> <p>So the scripts are not entirely eliminated. It’s not like we forget shell scripts and the <a href="https://aws.amazon.com/cli/" rel="nofollow">AWS CLI</a> now; they’re still important. But they get much shorter, usually just a deploy command and a delete command, with a little thing around them, like emptying buckets or uploading content.</p> <p>And the template is just a YAML file, a declaration. CloudFormation doesn’t go line by line like a script; it understands what you want to create and either creates everything or nothing at all. The intrinsic functions, <code>!Ref</code>, <code>!Sub</code>, <code>!GetAtt</code>, add a bit of dynamic behavior to an otherwise static file, and the CloudFormation engine processes them to give you the correct results.</p> <p>That’s how we deploy our static website with CloudFormation. What was the first thing you moved from a script into a template? Let me know in the comments, and see you in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1h0f95q = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.L8cWOk_4.js"),
+						import("../../_app/immutable/entry/app.F9_ixWsA.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

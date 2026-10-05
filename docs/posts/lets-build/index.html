@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.L8cWOk_4.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C5K9m7Jv.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BSsRGyPu.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.F9_ixWsA.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BMdGwnwI.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.4d2MrBCp.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DhsN428B.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="Wrapping up the first section of the series, the serverless building blocks we covered, what a month of running them actually costs, and an invitation to go build your next thing."/><!----><title>Let's Build! — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Let's Build!</h1> <time datetime="2026-09-28">2026-09-28</time> <!--[--><p>In this first section of the series, we explored how to deliver serverless websites and apps on AWS. We saw how to store content on <a href="https://prodbytes.substack.com/p/static-websites-on-amazon-s3" rel="nofollow">Amazon S3</a>, compute with <a href="https://prodbytes.substack.com/p/functions-with-the-aws-sam" rel="nofollow">AWS Lambda</a>, keep data in <a href="https://prodbytes.substack.com/p/serverless-databases" rel="nofollow">Aurora Serverless PostgreSQL</a>, serve <a href="https://prodbytes.substack.com/p/your-own-secure-domain" rel="nofollow">your own secure domain</a> with Route 53, ACM, and CloudFront, and manage users and permissions with <a href="https://aws.amazon.com/cognito/" rel="nofollow">Amazon Cognito</a>. That’s pretty much everything we need to build and ship an app.</p> <blockquote><p>This post is part of the <a href="https://prodbytes.substack.com/p/delivering-projects-on-aws?r=c4tlc" rel="nofollow">“Delivering Software Projects”</a> series, focused on helping YOU be sucessful in your tech career. Please consider becoming a member. For a small contribution, you’ll help us keep the lights on and have full access to our content, events and tools.</p></blockquote> <h2>Paying only for what you use</h2> <p>The common thread in all of those services is that they’re serverless, meaning that we only pay for the resources we actually use. If we get, for example, a single request during the entire night, we don’t pay for all the hours a server was sitting there waiting. We pay just for the resources consumed by that one request, which is probably going to be a fraction of a penny. The pricing pages for <a href="https://aws.amazon.com/lambda/pricing/" rel="nofollow">Lambda</a>, <a href="https://aws.amazon.com/s3/pricing/" rel="nofollow">S3</a>, and <a href="https://aws.amazon.com/cloudfront/pricing/" rel="nofollow">CloudFront</a> all work that way, per request, per gigabyte, per millisecond.</p> <p>That’s not free, and it’s not always cheaper. Under steady, heavy traffic, capacity you provision yourself can come out ahead, and scaling from zero has the cold start trade-offs we discussed with the database. But for a new project, when you have no idea how much traffic you’re going to get, it’s a very good place to start.</p> <h2>What it actually costs</h2> <p>To show very transparently what I mean, here’s what my bill looks like this month on the <a href="https://console.aws.amazon.com/billing/" rel="nofollow">AWS Billing console</a>. Most of it is a one-time charge for the domain I registered with Route 53. The actual service cost, for everything running across these episodes, is around $3, because I don’t have a lot of traffic.</p> <p>Your numbers will be different, of course, depending on what you leave running and how much traffic you get. That’s why the <a href="https://prodbytes.substack.com/p/budgets-and-utilization-alarms" rel="nofollow">budget alerts</a> from the beginning of the series are still worth having in place. A small bill is only reassuring if you’d notice when it stops being small.</p> <h2>Your turn</h2> <p>So this is the idea: not wasting money or resources on your applications, and still being able to build and publish your next big thing. I hope this section encourages you to do exactly that, and to share it with me, with the world, and with the open source community if you want. The code for everything we’ve built so far is in the <a href="https://github.com/prodbytes/DSP" rel="nofollow">DSP repository</a>, so feel free to start from there.</p> <p>I’d be delighted to see what you build, so send it my way. In the next sections, I’m going to show you a lot more, other kinds of projects, other AWS services, and some apps for us to play with.</p> <p>What are you going to build first? Let me know in the comments, and see you in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1h0f95q = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.L8cWOk_4.js"),
+						import("../../_app/immutable/entry/app.F9_ixWsA.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

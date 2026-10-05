@@ -104,12 +104,16 @@ In the style of "love death robots: season 01 episode 02".
 3D cinematic render, photorealistic CGI, stylized robot characters, post-apocalyptic ambient lighting, surface imperfections, realistic metal and matte plastic textures, Unreal Engine 5 render
 Positive mood. Apocaliptic future background, but not too dark.
 No text in the image except the title.
+No watermark.
 The title must be readable.
 The title must be discreetly and smoothly embbeded in the image. 
 
 IMAGE TITLE:
-"Connecting to Isolated Databases with AWS Cloud Shell"
+"
+Your Own Secure Domain
+with Route53, ACM and CloudFront
+"
 
 IMAGE CONTENT:
-A little peral inside an oyster shell working on its database while dangerous fish prey outside
+A few youg characters in school with their own toy worlds, each world matching the character nature
 ```

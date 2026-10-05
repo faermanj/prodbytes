@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.L8cWOk_4.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C5K9m7Jv.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BSsRGyPu.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.F9_ixWsA.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BMdGwnwI.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.4d2MrBCp.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DhsN428B.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="The networking essentials you need before creating databases — CIDR blocks without the mystery, public and private subnets, and a three-AZ VPC deployed from a template."/><!----><title>Networking with Amazon VPC — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Networking with Amazon VPC</h1> <time datetime="2026-08-19">2026-08-19</time> <!--[--><p>Previously on this series, we saw how to host <a href="https://prodbytes.substack.com/p/static-websites-on-amazon-s3" rel="nofollow">websites</a>, files, and even <a href="https://prodbytes.substack.com/p/functions-with-the-aws-sam" rel="nofollow">functions</a>. Now we need to add something very important to this mix: databases. But to talk about databases, we need to take a step back and think about security and, in particular, networking. In most companies, networking will be restricted for databases; they will not be accessible from the internet, for good reasons. So it’s important to understand the very basics. If you’re new to the area, or more on the coding side and in need of a refresher on how networking works on AWS, this one is for you. <a href="https://aws.amazon.com/vpc/" rel="nofollow">Amazon VPC</a>, Virtual Private Cloud, is the fundamental service. Let’s see how it works.</p> <blockquote><p>This post is part of the <a href="https://prodbytes.substack.com/p/delivering-projects-on-aws?r=c4tlc" rel="nofollow">“Delivering Software Projects”</a> series, focused on helping YOU be sucessful in your tech career. Please consider becoming a member. For a small contribution, you’ll help us keep the lights on and have full access to our content, events and tools.</p></blockquote> <h2>What it costs</h2> <p>As usual, the product page at <a href="https://aws.amazon.com/vpc/" rel="nofollow">aws.amazon.com/vpc</a> has the pricing and features. The features we’re going to use today don’t have a cost directly associated with the resources, just the networking costs in general on AWS. The relevant numbers actually live on the <a href="https://aws.amazon.com/ec2/pricing/on-demand/" rel="nofollow">EC2 pricing page</a>, under data transfer. You don’t pay for data in, everything that comes into AWS is free of charge, but to get data out there’s a charge of about nine cents per gigabyte. That’s the basic internet charge, if you will.</p> <h2>The default VPC</h2> <p>In the <a href="https://console.aws.amazon.com/vpc/" rel="nofollow">VPC console</a>, even on a brand new account, you’ll see one VPC already there. That’s a special one called the <a href="https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html" rel="nofollow">default VPC</a>, created for you and tagged as such. This matters because otherwise you would have to create a network, and know about networking, before creating any instances, servers, or databases. It’s in everybody’s best interest to have a reasonably configured network you can use without worrying too much.</p> <p>One property worth understanding on any VPC is the IPv4 CIDR block. <a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing" rel="nofollow">CIDR</a>, Classless Inter-Domain Routing, is just a big name for a way to group octets, groups of eight binary digits. Take the default VPC’s block, <code>172.31.0.0/16</code>. Each of those four numbers is eight binary digits, and the mask after the slash says how many of those bits identify the network and how many identify the host within that network. Like a name and a surname: the address of the network, then the address of the host. With <code>/16</code>, the first sixteen bits, the first two numbers, are the network, and the rest addresses hosts inside it.</p> <pre class="language-undefined"><!----><code class="language-undefined">172.31.0.0/16 (default VPC)
+
+                      172        31         0          0
+                 +----------+----------+----------+----------+
+  address        | 10101100 | 00011111 | 00000000 | 00000000 |
+  mask (/16)     | 11111111 | 11111111 | 00000000 | 00000000 |
+                 +----------+----------+----------+----------+
+                      255        255        0          0
+                                       |
+                                       +-- prefix ends after bit 16
+                   &lt;-- network: 16 --&gt;  &lt;-- host: 16 bits --&gt;
+
+172.31.0.0 / 20 (subnet us-east-1a)
+
+                      172        31         0          0
+                 +----------+----------+----------+----------+
+  address        | 10101100 | 00011111 | 00000000 | 00000000 |
+  mask (/20)     | 11111111 | 11111111 | 11110000 | 00000000 |
+                 +----------+----------+----------+----------+
+                      255        255       240         0
+                                             |
+                                             +-- prefix ends after bit 20
+                    &lt;--- network: 20 bits ---&gt;&lt;-- host: 12 --&gt;
+
+172.31.0.42 / 32 (instance)</code><!----></pre> <p>Subnets carve up that space with longer masks. In the default VPC the subnets are <code>/20</code>, so the first twenty bits identify the subnet and the last twelve identify the host, and every subnet has to fit within the VPC’s block. You don’t really need to think about this a lot, because the console suggests sensible values, but it stops being mysterious once you see it as a simple split. Everything you already know about networking, private IP ranges and so on, is still valid here. It even supports <a href="https://en.wikipedia.org/wiki/IPv6" rel="nofollow">IPv6</a>, which expands the address space beyond the 32 bits of IPv4, if you care, which very few people seem to do.</p> <h2>Creating one with the wizard</h2> <p>In the console, “Create VPC” with the “VPC and more” option generates a full setup. It’s always good to be as specific as possible on resource names, something like <code>dev</code> and <code>test</code>, and the wizard already suggests a <code>/16</code> CIDR block.</p> <p>Then comes tenancy, where the default, shared, is what you want. And the number of <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html" rel="nofollow">Availability Zones</a>, which are the sets of data centers within a region. Everything here is inside the region set in the console, Northern Virginia in my case, which has six availability zones. The wizard lets me select up to three, and in each of them I’ll get a public and a private subnet.</p> <p>Public and private is about whether resources are reachable from the internet. If you have a public web server or a load balancer, you need it to be public, and being public means basically two things: having a public IP address and having a route to the <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html" rel="nofollow">internet gateway</a>, a resource of the VPC that the wizard creates as well, wired up through the route table. In the private subnets, addresses are not publicly visible and resources are not reachable from the internet.</p> <p><a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html" rel="nofollow">NAT gateways</a> allow connections <em>from inside</em> the private subnets out to the internet, which is useful for updates and some operations. But they have an extra cost, and it’s not a low one, so I would recommend not using them if possible. If you need a NAT gateway later, you add a NAT gateway later. For now, let’s start without one, not to waste any resources. Same for <a href="https://docs.aws.amazon.com/vpc/latest/privatelink/concepts.html" rel="nofollow">VPC endpoints</a>: when we need them and talk about internal routing, we’ll cover them, but for now, none.</p> <p>Finally, <a href="https://en.wikipedia.org/wiki/Domain_Name_System" rel="nofollow">DNS</a>, the domain name system, is what lets us refer to services and resources by name instead of weird addresses. That’s probably a good thing, so enable both DNS options.</p> <p>Before creating, the wizard shows a preview of how the infrastructure looks: one private and one public subnet in each AZ, identified as 1a, 1b, and 1c within us-east-1, always located within that geographic boundary. The public route table routes to the internet gateway, which provides internet connectivity, while the private one stays private. Create it, and in a moment it’s done.</p> <h2>The same thing, as code</h2> <p>The diagram above and a template to do the same as code live in the <a href="https://github.com/prodbytes/DSP" rel="nofollow">DSP repository</a>, under <a href="https://github.com/prodbytes/DSP/tree/main/samples/vpc-3ha" rel="nofollow">samples/vpc-3ha</a>. It’s a <a href="https://aws.amazon.com/cloudformation/" rel="nofollow">CloudFormation</a> template with exactly what we just built: three public and three private subnets, each with its own address range and tags, and the commands to create it are right there.</p> <pre class="language-yaml"><!----><code class="language-yaml"><span class="token comment"># aws cloudformation deploy --stack-name vpc-3ha --template-file samples/vpc-3ha/vpc-3ha.cform.yaml</span>
+<span class="token comment"># aws cloudformation delete-stack --stack-name vpc-3ha</span>
+<span class="token key atrule">Description</span><span class="token punctuation">:</span> VPC with 3 public subnets and 3 isolated private subnets.
+
+<span class="token key atrule">Parameters</span><span class="token punctuation">:</span>
+  <span class="token key atrule">EnvId</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> Project
+
+  <span class="token key atrule">VpcCidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.0.0/16
+
+  <span class="token key atrule">PublicSubnet1Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.1.0/24
+  
+  <span class="token key atrule">PublicSubnet2Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.3.0/24
+  
+  <span class="token key atrule">PublicSubnet3Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.5.0/24
+  
+  <span class="token key atrule">IsolatedSubnet1Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.2.0/24
+  
+  <span class="token key atrule">IsolatedSubnet2Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.4.0/24
+  
+  <span class="token key atrule">IsolatedSubnet3Cidr</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> String
+    <span class="token key atrule">Default</span><span class="token punctuation">:</span> 10.0.6.0/24
+
+<span class="token key atrule">Resources</span><span class="token punctuation">:</span>
+  <span class="token key atrule">VPC</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>VPC
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VpcCidr
+      <span class="token key atrule">EnableDnsSupport</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+      <span class="token key atrule">EnableDnsHostnames</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>vpc
+
+  <span class="token key atrule">InternetGateway</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>InternetGateway
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>igw
+
+  <span class="token key atrule">VPCGatewayAttachment</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>VPCGatewayAttachment
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">InternetGatewayId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> InternetGateway
+
+  <span class="token key atrule">PublicRouteTable</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>RouteTable
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>public<span class="token punctuation">-</span>rt
+
+  <span class="token key atrule">PublicDefaultRoute</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Route
+    <span class="token key atrule">DependsOn</span><span class="token punctuation">:</span> VPCGatewayAttachment
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicRouteTable
+      <span class="token key atrule">DestinationCidrBlock</span><span class="token punctuation">:</span> 0.0.0.0/0
+      <span class="token key atrule">GatewayId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> InternetGateway
+
+  <span class="token key atrule">IsolatedRouteTable</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>RouteTable
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>isolated<span class="token punctuation">-</span>rt
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Isolation
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> isolated
+
+  <span class="token key atrule">PublicSubnet1</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet1Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>public<span class="token punctuation">-</span>a
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Tier
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> public
+
+  <span class="token key atrule">PublicSubnet2</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet2Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>public<span class="token punctuation">-</span>b
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Tier
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> public
+
+  <span class="token key atrule">PublicSubnet3</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet3Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>public<span class="token punctuation">-</span>c
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Tier
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> public
+
+  <span class="token key atrule">IsolatedSubnet1</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet1Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>isolated<span class="token punctuation">-</span>a
+
+  <span class="token key atrule">IsolatedSubnet2</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet2Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>isolated<span class="token punctuation">-</span>b
+
+  <span class="token key atrule">IsolatedSubnet3</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>Subnet
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">VpcId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+      <span class="token key atrule">CidrBlock</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet3Cidr
+      <span class="token key atrule">AvailabilityZone</span><span class="token punctuation">:</span> <span class="token tag">!Select</span> <span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token tag">!GetAZs</span> <span class="token string">""</span><span class="token punctuation">]</span>
+      <span class="token key atrule">MapPublicIpOnLaunch</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>
+      <span class="token key atrule">Tags</span><span class="token punctuation">:</span>
+        <span class="token punctuation">-</span> <span class="token key atrule">Key</span><span class="token punctuation">:</span> Name
+          <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>isolated<span class="token punctuation">-</span>c
+
+  <span class="token key atrule">AssocPublicSubnet1</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet1
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicRouteTable
+  <span class="token key atrule">AssocPublicSubnet2</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet2
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicRouteTable
+  <span class="token key atrule">AssocPublicSubnet3</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet3
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicRouteTable
+
+  <span class="token key atrule">AssocIsolatedSubnet1</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet1
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedRouteTable
+  <span class="token key atrule">AssocIsolatedSubnet2</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet2
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedRouteTable
+  <span class="token key atrule">AssocIsolatedSubnet3</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Type</span><span class="token punctuation">:</span> AWS<span class="token punctuation">:</span><span class="token punctuation">:</span>EC2<span class="token punctuation">:</span><span class="token punctuation">:</span>SubnetRouteTableAssociation
+    <span class="token key atrule">Properties</span><span class="token punctuation">:</span>
+      <span class="token key atrule">SubnetId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet3
+      <span class="token key atrule">RouteTableId</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedRouteTable
+
+<span class="token key atrule">Outputs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">VpcId</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> VPC
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>VpcId
+
+  <span class="token key atrule">InternetGatewayId</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> InternetGateway
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>InternetGatewayId
+
+  <span class="token key atrule">PublicRouteTableId</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicRouteTable
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>PublicRouteTableId
+
+  <span class="token key atrule">IsolatedRouteTableId</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedRouteTable
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>IsolatedRouteTableId
+
+  <span class="token key atrule">PublicSubnetIds</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span>
+      <span class="token tag">!Join</span> <span class="token punctuation">[</span><span class="token string">","</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token tag">!Ref</span> PublicSubnet1<span class="token punctuation">,</span> <span class="token tag">!Ref</span> PublicSubnet2<span class="token punctuation">,</span> <span class="token tag">!Ref</span> PublicSubnet3<span class="token punctuation">]</span><span class="token punctuation">]</span>
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>PublicSubnetIds
+
+  <span class="token key atrule">IsolatedSubnetIds</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span>
+      <span class="token tag">!Join</span> <span class="token punctuation">[</span>
+        <span class="token string">","</span><span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token tag">!Ref</span> IsolatedSubnet1<span class="token punctuation">,</span> <span class="token tag">!Ref</span> IsolatedSubnet2<span class="token punctuation">,</span> <span class="token tag">!Ref</span> IsolatedSubnet3<span class="token punctuation">]</span><span class="token punctuation">,</span>
+      <span class="token punctuation">]</span>
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>IsolatedSubnetIds
+
+  <span class="token key atrule">PublicSubnet1Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet1
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>PublicSubnet1Id
+  <span class="token key atrule">PublicSubnet2Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet2
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>PublicSubnet2Id
+  <span class="token key atrule">PublicSubnet3Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> PublicSubnet3
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>PublicSubnet3Id
+
+  <span class="token key atrule">IsolatedSubnet1Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet1
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>IsolatedSubnet1Id
+  <span class="token key atrule">IsolatedSubnet2Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet2
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>IsolatedSubnet2Id
+  <span class="token key atrule">IsolatedSubnet3Id</span><span class="token punctuation">:</span>
+    <span class="token key atrule">Value</span><span class="token punctuation">:</span> <span class="token tag">!Ref</span> IsolatedSubnet3
+    <span class="token key atrule">Export</span><span class="token punctuation">:</span>
+      <span class="token key atrule">Name</span><span class="token punctuation">:</span> <span class="token tag">!Sub</span> $<span class="token punctuation">&#123;</span>EnvId<span class="token punctuation">&#125;</span><span class="token punctuation">-</span>IsolatedSubnet3Id</code><!----></pre> <p>Before creating resources, I always recommend checking with <a href="https://docs.aws.amazon.com/cli/latest/reference/sts/get-caller-identity.html" rel="nofollow"><code>aws sts get-caller-identity</code></a> that you are using the account you expect to be using. Then <code>aws cloudformation deploy</code> deploys the template, and on the <a href="https://console.aws.amazon.com/cloudformation/" rel="nofollow">CloudFormation console</a> you can watch the stack creation going on. In a minute, the VPC console shows three VPCs: the default one, the dev/test one we created from the wizard, and the one created by CloudFormation.</p> <p>That last one is named after the <code>EnvId</code> parameter, which defaults to <code>Project</code>. I always like to add one, two, perhaps three parameters to identify the environment, the ownership, some metadata to classify environments properly and know what’s what later.</p> <p>And when you’re done, never forget to delete the resources. You can do it on the console or with the delete command provided in the repository.</p> <p>That’s it for the networking basics. With a VPC in place, we’re ready to talk about databases. Have you ever had to debug why something in a private subnet couldn’t reach the internet? Let me know in the comments, and see you in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1h0f95q = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.L8cWOk_4.js"),
+						import("../../_app/immutable/entry/app.F9_ixWsA.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

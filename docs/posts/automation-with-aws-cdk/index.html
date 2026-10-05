@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../../favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link href="../../_app/immutable/entry/start.L8cWOk_4.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/C5K9m7Jv.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/Bc9sbryf.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BSsRGyPu.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/-UyI9lYi.js" rel="modulepreload">
+		<link href="../../_app/immutable/entry/app.F9_ixWsA.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/BAi0qa6R.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CLaCPD9J.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DFBBNaST.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/CFMKdL8_.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/0.BMdGwnwI.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DtUaL73a.js" rel="modulepreload">
+		<link href="../../_app/immutable/nodes/3.4d2MrBCp.js" rel="modulepreload">
+		<link href="../../_app/immutable/chunks/DhsN428B.js" rel="modulepreload">
+		<!--14u6r3i--><meta name="description" content="Building CloudFormation templates with a real programming language — deploying the same static website with the AWS CDK and Python instead of YAML."/><!----><title>Automation with AWS CDK — ProdBytes</title>
+		<link href="../../_app/immutable/assets/0.DbkGT8cY.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents"><!--[--><!--[0--><!--[--><div class="site"><header><a class="brand" href="../../">ProdBytes</a> <nav><a href="../../">Home</a></nav></header> <main><!--[--><article><h1>Automation with AWS CDK</h1> <time datetime="2026-08-07">2026-08-07</time> <!--[--><p>Next, let’s look at the <a href="https://aws.amazon.com/cdk/" rel="nofollow">AWS Cloud Development Kit</a>, the CDK, which lets us develop CloudFormation templates using our favorite programming language instead of YAML or JSON. <a href="https://www.java.com/" rel="nofollow">Java</a>, <a href="https://www.python.org/" rel="nofollow">Python</a>, <a href="https://go.dev/" rel="nofollow">Go</a>, <a href="https://www.typescriptlang.org/" rel="nofollow">TypeScript</a>, whatever you like. In this one, we’ll deploy the same static website <a href="../automation-with-aws-cloudformation/">from the CloudFormation episode</a>, but written in Python.</p> <blockquote><p>This post is part of the <a href="https://prodbytes.substack.com/p/delivering-projects-on-aws?r=c4tlc" rel="nofollow">“Delivering Software Projects”</a> series, focused on helping YOU be sucessful in your tech career. Please consider becoming a member. For a small contribution, you’ll help us keep the lights on and have full access to our content, events and tools.</p></blockquote> <h2>What the CDK is</h2> <p>You can find the CDK at <a href="https://aws.amazon.com/cdk/" rel="nofollow">aws.amazon.com/cdk</a>, and it’s also an open source project. On <a href="https://github.com/aws/aws-cdk" rel="nofollow">GitHub, under aws/aws-cdk</a>, you have the source code, the issues, the pull requests, and you can even join the project if you’d like.</p> <p>The idea is that the CDK helps you build CloudFormation templates and deploy your infrastructure using other languages. It’s built on top of <a href="https://github.com/aws/jsii" rel="nofollow">JSII</a>, another project from AWS, and that one is interesting on its own: it generates the bindings from TypeScript to other languages. So if you’re building something and want to expose functionality to clients in several different languages, JSII might be useful for you too. Instead of rewriting things in Java, Python, TypeScript, and so on, you generate the implementations from one codebase. The largest usage of it is probably the CDK itself.</p> <h2>Getting started</h2> <p>Installing is simple, it’s an <a href="https://www.npmjs.com/package/aws-cdk" rel="nofollow">npm</a> package:</p> <pre class="language-bash"><!----><code class="language-bash"><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">-g</span> aws-cdk</code><!----></pre> <p>Running <code>cdk help</code> shows all the supported commands, like <code>import</code>, <code>deploy</code>, <code>rollback</code>, and so on. Let’s get started with <code>init</code>, which sets up a new project, and with <code>-l</code> we choose the language:</p> <pre class="language-bash"><!----><code class="language-bash">cdk init <span class="token parameter variable">-l</span> python</code><!----></pre> <p>This creates a project in the current directory, including a Python virtual environment, and the README lists all the commands we need to run it. Activate the environment, install the requirements (that only needs to be done once), and we’re ready.</p> <p>Before synthesizing anything, take a look at the source code. In the package with the same name as the project, there’s the code for our stack, and instead of YAML, it’s Python. The generated project comes with a commented-out example for an <a href="https://aws.amazon.com/sqs/" rel="nofollow">Amazon SQS</a> queue. Uncomment it and add something ridiculous, like a visibility timeout of 333, just to prove the template is being generated from our code:</p> <pre class="language-python"><!----><code class="language-python">queue <span class="token operator">=</span> sqs<span class="token punctuation">.</span>Queue<span class="token punctuation">(</span>
+    self<span class="token punctuation">,</span> <span class="token string">"CdkDemoQueue"</span><span class="token punctuation">,</span>
+    visibility_timeout<span class="token operator">=</span>Duration<span class="token punctuation">.</span>seconds<span class="token punctuation">(</span><span class="token number">333</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span></code><!----></pre> <p>Then <code>cdk synth</code> synthesizes the CloudFormation template. The output has support for multiple regions and some extra metadata, and most importantly, the queue has exactly the visibility timeout we specified. We’re building with our favorite language, its module system, its libraries, whatever we want to bring in, and in the end we have a CloudFormation template we can deploy.</p> <h2>The website stack in Python</h2> <p>The example lives in the <a href="https://github.com/prodbytes/DSP" rel="nofollow">DSP repository</a>, under <a href="https://github.com/prodbytes/DSP/tree/main/samples/static-website-simple/cdk" rel="nofollow">samples/static-website-simple/cdk</a>, next to the CloudFormation and Bash versions of the same website. The stack is the same idea we’ve been doing before, but in Python:</p> <pre class="language-python"><!----><code class="language-python">website_bucket <span class="token operator">=</span> s3<span class="token punctuation">.</span>Bucket<span class="token punctuation">(</span>
+    self<span class="token punctuation">,</span> <span class="token string">"WebsiteBucket"</span><span class="token punctuation">,</span>
+    website_index_document<span class="token operator">=</span><span class="token string">"index.html"</span><span class="token punctuation">,</span>
+    public_read_access<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+    block_public_access<span class="token operator">=</span>s3<span class="token punctuation">.</span>BlockPublicAccess<span class="token punctuation">(</span>
+        block_public_acls<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+        block_public_policy<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+        ignore_public_acls<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+        restrict_public_buckets<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span><span class="token punctuation">,</span>
+    removal_policy<span class="token operator">=</span>RemovalPolicy<span class="token punctuation">.</span>DESTROY<span class="token punctuation">,</span>
+    auto_delete_objects<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span></code><!----></pre> <p>The same properties from the previous episodes: the index document, allowing public read access, relaxing the public access block. Something different here is that the CDK can also deploy content to S3. With the <a href="https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_s3_deployment.html" rel="nofollow"><code>s3_deployment</code> module</a>, the copying of the files happens directly in the stack, without doing it in the script as we did for CloudFormation:</p> <pre class="language-python"><!----><code class="language-python">s3_deployment<span class="token punctuation">.</span>BucketDeployment<span class="token punctuation">(</span>
+    self<span class="token punctuation">,</span> <span class="token string">"WebsiteDeployment"</span><span class="token punctuation">,</span>
+    sources<span class="token operator">=</span><span class="token punctuation">[</span>s3_deployment<span class="token punctuation">.</span>Source<span class="token punctuation">.</span>asset<span class="token punctuation">(</span><span class="token string">"../hello-website/"</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    destination_bucket<span class="token operator">=</span>website_bucket<span class="token punctuation">,</span>
+<span class="token punctuation">)</span></code><!----></pre> <p>That bucket deployment is quite useful. And then the output with the website URL, just like the <code>Outputs</code> section in the YAML template:</p> <pre class="language-python"><!----><code class="language-python">CfnOutput<span class="token punctuation">(</span>
+    self<span class="token punctuation">,</span> <span class="token string">"WebsiteURL"</span><span class="token punctuation">,</span>
+    value<span class="token operator">=</span>website_bucket<span class="token punctuation">.</span>bucket_website_url<span class="token punctuation">,</span>
+<span class="token punctuation">)</span></code><!----></pre> <h2>Deploying</h2> <p>As usual, there’s a deploy script in the <code>scripts</code> folder, and it’s just a few lines. The usual Python stuff, creating the virtual environment and installing the requirements, and then the two important commands:</p> <pre class="language-bash"><!----><code class="language-bash">npx cdk bootstrap
+npx cdk deploy --require-approval never --outputs-file cdk-outputs.json</code><!----></pre> <p>The <code>bootstrap</code> step creates resources for the CDK to work: a bucket for the source files, the required policies, and things like that. It only needs to happen once per account and region. Once bootstrapping is complete, <code>cdk deploy</code> generates the template from our code and deploys it to AWS. The script prints the website URL at the end, click it, and there’s the same website with the same behavior we’ve been using.</p> <p>Over on the <a href="https://console.aws.amazon.com/cloudformation/" rel="nofollow">CloudFormation console</a>, the bucket stack is just a regular CloudFormation stack, nothing different or special about it. You can even see the template that was generated from our code. A little more metadata, but all in all, just a CloudFormation template with the settings to have a public website running.</p> <p>Destroying is one command, <code>cdk destroy</code>, and since the bucket was declared with <code>auto_delete_objects=True</code>, the CDK takes care of emptying it first. One less thing for the destroy script to do.</p> <h2>YAML or code?</h2> <p>Some people prefer YAML, some people prefer Python, some prefer Java. Each one will be better according to your context, so take your favorite. The most important difference is that this is not a static declaration, but something that gets executed. You can read environment variables, fetch secrets, do loops and conditionals, whatever you need. It’s your code. We’ll go further into the CDK in other examples; it’s a great tool.</p> <p>That’s the CDK deploying our static website. What do you think, is it better in a proper programming language, or do you prefer CloudFormation in YAML? See you in the comments and in the next one!</p><!--]--> <p><a href="../../">← Back home</a></p></article><!--]--><!----></main> <footer><p>Content licensed under <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p></footer></div><!--]--><!--]--> <!--[-1--><!--]--><!--]-->
+			
+			<script>
+				{
+					__sveltekit_1h0f95q = {
+						base: new URL("../..", location).pathname.slice(0, -1),
+						assets: "/prodbytes"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../../_app/immutable/entry/start.L8cWOk_4.js"),
+						import("../../_app/immutable/entry/app.F9_ixWsA.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element, {
+							node_ids: [0, 3],
+							data: [null,null],
+							form: null,
+							error: null
+						});
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>
